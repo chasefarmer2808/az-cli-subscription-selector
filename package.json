@@ -18,6 +18,9 @@
     "url": "https://github.com/chasefarmer2808/az-cli-subscription-selector/issues"
   },
   "homepage": "https://github.com/chasefarmer2808/az-cli-subscription-selector#readme",
+  "bin": {
+    "azsubselect": "./index.js"
+  },
   "dependencies": {
     "inquirer": "^9.1.4"
   }
