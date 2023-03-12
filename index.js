@@ -17,9 +17,17 @@ function execShellCommand(cmd) {
   });
 }
 
+async function getCurrentSubscription() {
+  const subRaw = await execShellCommand("az account show");
+  return JSON.parse(subRaw);
+}
+
 async function setSubscription(subscriptionId) {
   await execShellCommand(`az account set --subscription=${subscriptionId}`);
 }
+
+const currSub = await getCurrentSubscription();
+console.log(`Current subscription: ${currSub.name}`);
 
 const accountListRaw = await execShellCommand("az account list");
 const subscriptions = JSON.parse(accountListRaw);
@@ -29,17 +37,29 @@ if (subscriptions.length === 0) {
   process.exit();
 }
 
-const subNames = subscriptions.map((sub) => sub.name);
+const promptChoices = subscriptions.map((sub) => {
+  if (sub.id === currSub.id) {
+    return {
+      name: `* ${sub.name} (${sub.id})`,
+      value: sub.id,
+    };
+  }
+
+  return {
+    name: `${sub.name} (${sub.id})`,
+    value: sub.id,
+  };
+});
 
 const selectQuestion = {
   type: "list",
   name: "selectedSub",
   message: "Which subscription would you like to select?",
-  choices: subNames,
+  choices: promptChoices,
 };
 
 const { selectedSub } = await inquirer.prompt([selectQuestion]);
-const selectedSubObj = subscriptions.find((sub) => sub.name === selectedSub);
+const selectedSubObj = subscriptions.find((sub) => sub.id === selectedSub);
 await setSubscription(selectedSubObj.id);
 console.log(
   `Successfully set subscription to ${selectedSubObj.name} with ID ${selectedSubObj.id}`
